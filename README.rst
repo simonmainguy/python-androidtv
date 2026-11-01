@@ -38,7 +38,7 @@ Audio-player data does not reliably distinguish buffering from a deliberate paus
 Home Assistant
 --------------
 
-A custom integration and a pinned Linux development environment are available in `ha-androidtv-adb <https://github.com/simonmainguy/ha-androidtv-adb>`_. Automated integration tests replay the recorded replies through Home Assistant 2026.10.4 entities and check configuration, reloads and disconnect recovery. A live Home Assistant trial with the TVs is still pending.
+A custom integration and a pinned Linux development environment are available in `ha-androidtv-adb <https://github.com/simonmainguy/ha-androidtv-adb>`_. Automated integration tests replay the recorded replies through Home Assistant 2026.10.4 entities and check configuration, reloads and disconnect recovery. A separate live Home Assistant trial checked all three Sony apps, volume, standby/wake, entry reloads and a full restart. Google TV Streamer checks confirmed TiviMate pause/resume and power behavior, while exposing an existing YouTube session-state parsing limitation shared with the original library. See the integration repository's `test results <https://github.com/simonmainguy/ha-androidtv-adb/blob/main/docs/testing.md>`_ for the verified scope and remaining limits.
 
 There is no published release of this fork yet. Installing ``androidtv`` from PyPI installs the upstream package.
 
