@@ -38,7 +38,7 @@ Audio-player data does not reliably distinguish buffering from a deliberate paus
 Home Assistant
 --------------
 
-The changes have been tested against the TV, but validation inside Home Assistant is still pending. Custom integration packaging is being developed in `ha-androidtv-adb <https://github.com/simonmainguy/ha-androidtv-adb>`_.
+A custom integration and a pinned Linux development environment are available in `ha-androidtv-adb <https://github.com/simonmainguy/ha-androidtv-adb>`_. Automated integration tests replay the recorded replies through Home Assistant 2026.10.4 entities and check configuration, reloads and disconnect recovery. A live Home Assistant trial with the TVs is still pending.
 
 There is no published release of this fork yet. Installing ``androidtv`` from PyPI installs the upstream package.
 
