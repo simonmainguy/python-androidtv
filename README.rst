@@ -6,15 +6,16 @@ A development fork of `JeffLIrion/python-androidtv <https://github.com/JeffLIrio
 Current changes
 ---------------
 
-The current changes address playback reporting on Sony TVs running Android 10:
+The current changes improve Sony Android 10 playback reporting and support named Android media-session states:
 
 * Recover the foreground app when window-focus fields are missing.
 * Read that app's current media audio players instead of historical events.
 * Match media sessions to the exact app and ignore incomplete or failed replies.
+* Parse both numeric states and named states such as ``PLAYING(3)`` and ``PAUSED(2)``.
 
-The detection is shared across apps. Existing custom commands and state-detection rules keep their priority. Other device families retain their existing behavior.
+The detection is shared across apps. Existing custom commands and state-detection rules keep their priority. Sony foreground/audio workarounds remain device-specific, while the shared session parser accepts both numeric and named formats.
 
-The code changes are kept on the `sony-android10-playback branch <https://github.com/simonmainguy/python-androidtv/tree/sony-android10-playback>`_ separately from this fork's documentation.
+The code changes are kept on the `playback-detection branch <https://github.com/simonmainguy/python-androidtv/tree/playback-detection>`_ separately from this fork's documentation.
 
 Testing
 -------
@@ -33,12 +34,14 @@ A standalone runner for the Sony parser tests is also available:
 
    python scripts/run_sony_offline_tests.py
 
+Google TV Streamer Android 14 captures also cover YouTube play, pause, resume and menus. Parser tests cover both numeric and named states, multi-digit codes and malformed replies. Home Assistant replay and live tests are recorded in the integration repository linked below.
+
 Audio-player data does not reliably distinguish buffering from a deliberate pause.
 
 Home Assistant
 --------------
 
-A custom integration and a pinned Linux development environment are available in `ha-androidtv-adb <https://github.com/simonmainguy/ha-androidtv-adb>`_. Automated integration tests replay the recorded replies through Home Assistant 2026.10.4 entities and check configuration, reloads and disconnect recovery. A separate live Home Assistant trial checked all three Sony apps, volume, standby/wake, entry reloads and a full restart. Google TV Streamer checks confirmed TiviMate pause/resume and power behavior, while exposing an existing YouTube session-state parsing limitation shared with the original library. See the integration repository's `test results <https://github.com/simonmainguy/ha-androidtv-adb/blob/main/docs/testing.md>`_ for the verified scope and remaining limits.
+A custom integration and a pinned Linux development environment are available in `ha-androidtv-adb <https://github.com/simonmainguy/ha-androidtv-adb>`_. Automated integration tests replay the recorded replies through Home Assistant 2026.10.4 entities and check configuration, reloads and disconnect recovery. A separate live Home Assistant trial checked all three Sony apps, volume, standby/wake, entry reloads and a full restart. Google TV Streamer checks initially exposed a named-state parsing limitation shared with the original library. The follow-up parser fix is included in custom integration 0.1.0b2. See the integration repository's `test results <https://github.com/simonmainguy/ha-androidtv-adb/blob/main/docs/testing.md>`_ for the verified scope and remaining limits.
 
 There is no published release of this fork yet. Installing ``androidtv`` from PyPI installs the upstream package.
 
