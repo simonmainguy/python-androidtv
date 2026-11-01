@@ -1,0 +1,63 @@
+{
+  "provenance": {
+    "device": "Google TV Streamer",
+    "android_version": "14",
+    "captured_date": "2026-11-01",
+    "capture": "Recorded foreground-window fields and media-session state values. Unrelated windows, sessions and metadata were removed; the session-stack header was normalized. Audio replies are omitted to isolate session evidence. HA replay supplies peripheral volume synthetically. No private addresses or account information are included.",
+    "android_source": "https://android.googlesource.com/platform/frameworks/base/+/master/media/java/android/media/session/PlaybackState.java"
+  },
+  "samples": {
+    "youtube_play": {
+      "expected_app": "com.google.android.youtube.tv",
+      "expected_state": "playing",
+      "screen_on": true,
+      "awake": true,
+      "wake_locks": 2,
+      "window": "  imeLayeringTarget in display# 0 Window{74331c3 u0 com.google.android.youtube.tv/com.google.android.apps.youtube.tv.activity.MainActivity}\n  imeInputTarget in display# 0 Window{74331c3 u0 com.google.android.youtube.tv/com.google.android.apps.youtube.tv.activity.MainActivity}\n  imeControlTarget in display# 0 Window{74331c3 u0 com.google.android.youtube.tv/com.google.android.apps.youtube.tv.activity.MainActivity}\n",
+      "activity": "",
+      "media": "Sessions Stack - have 1 sessions:\n      package=com.google.android.youtube.tv\n      state=PlaybackState {state=PLAYING(3)}\n  Session2Tokens:\n",
+      "audio": "",
+      "packages": "",
+      "expected_media_session_state": 3
+    },
+    "youtube_pause": {
+      "expected_app": "com.google.android.youtube.tv",
+      "expected_state": "paused",
+      "screen_on": true,
+      "awake": true,
+      "wake_locks": 0,
+      "window": "  imeLayeringTarget in display# 0 Window{74331c3 u0 com.google.android.youtube.tv/com.google.android.apps.youtube.tv.activity.MainActivity}\n  imeInputTarget in display# 0 Window{74331c3 u0 com.google.android.youtube.tv/com.google.android.apps.youtube.tv.activity.MainActivity}\n  imeControlTarget in display# 0 Window{74331c3 u0 com.google.android.youtube.tv/com.google.android.apps.youtube.tv.activity.MainActivity}\n",
+      "activity": "",
+      "media": "Sessions Stack - have 1 sessions:\n      package=com.google.android.youtube.tv\n      state=PlaybackState {state=PAUSED(2)}\n  Session2Tokens:\n",
+      "audio": "",
+      "packages": "",
+      "expected_media_session_state": 2
+    },
+    "youtube_resume": {
+      "expected_app": "com.google.android.youtube.tv",
+      "expected_state": "playing",
+      "screen_on": true,
+      "awake": true,
+      "wake_locks": 2,
+      "window": "  imeLayeringTarget in display# 0 Window{74331c3 u0 com.google.android.youtube.tv/com.google.android.apps.youtube.tv.activity.MainActivity}\n  imeInputTarget in display# 0 Window{74331c3 u0 com.google.android.youtube.tv/com.google.android.apps.youtube.tv.activity.MainActivity}\n  imeControlTarget in display# 0 Window{74331c3 u0 com.google.android.youtube.tv/com.google.android.apps.youtube.tv.activity.MainActivity}\n",
+      "activity": "",
+      "media": "Sessions Stack - have 1 sessions:\n      package=com.google.android.youtube.tv\n      state=PlaybackState {state=PLAYING(3)}\n  Session2Tokens:\n",
+      "audio": "",
+      "packages": "",
+      "expected_media_session_state": 3
+    },
+    "youtube_menu": {
+      "expected_app": "com.google.android.youtube.tv",
+      "expected_state": "idle",
+      "screen_on": true,
+      "awake": true,
+      "wake_locks": 0,
+      "window": "  imeLayeringTarget in display# 0 Window{74331c3 u0 com.google.android.youtube.tv/com.google.android.apps.youtube.tv.activity.MainActivity}\n  imeInputTarget in display# 0 Window{74331c3 u0 com.google.android.youtube.tv/com.google.android.apps.youtube.tv.activity.MainActivity}\n  imeControlTarget in display# 0 Window{74331c3 u0 com.google.android.youtube.tv/com.google.android.apps.youtube.tv.activity.MainActivity}\n",
+      "activity": "",
+      "media": "Sessions Stack - have 0 sessions:\n\n  Session2Tokens:\n",
+      "audio": "",
+      "packages": "",
+      "expected_media_session_state": null
+    }
+  }
+}

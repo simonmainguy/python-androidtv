@@ -730,7 +730,12 @@ APPS = {
 
 
 # Regular expressions
-REGEX_MEDIA_SESSION_STATE = re.compile(r"state=(?P<state>[0-9]+)", re.MULTILINE)
+# Android emits both state=3 and state=PLAYING(3). Require a closing
+# parenthesis in the named form and keep the numeric capture shared.
+REGEX_MEDIA_SESSION_STATE = re.compile(
+    r"\bstate=(?:(?P<state_name>[A-Z_]+)\()?(?P<state>[0-9]+)(?(state_name)\))(?=[,\s}]|$)",
+    re.MULTILINE,
+)
 REGEX_WAKE_LOCK_SIZE = re.compile(r"size=(?P<size>[0-9]+)")
 
 # Regular expression patterns
