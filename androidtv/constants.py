@@ -92,6 +92,44 @@ CMD_PARSE_CURRENT_APP11 = "CURRENT_APP=${CURRENT_APP%%/*} && CURRENT_APP=${CURRE
 CMD_DEFINE_CURRENT_APP_VARIABLE = (
     "CURRENT_APP=$(dumpsys window windows | grep -E 'mCurrentFocus|mFocusedApp') && " + CMD_PARSE_CURRENT_APP
 )
+
+#: Sony Android 10 can omit window-focus fields. Prefer a valid legacy result,
+#: then read the resumed activity; Window #1 can be a system divider instead.
+CMD_DEFINE_CURRENT_APP_VARIABLE_SONY_ANDROID10 = (
+    "{ "
+    + CMD_DEFINE_CURRENT_APP_VARIABLE
+    + "; } && "
+    + '[ "$CURRENT_APP" != null ] && '
+    + "printf '%s\\n' \"$CURRENT_APP\" | grep -Eq '^android$|^[A-Za-z_][A-Za-z0-9_]*(\\.[A-Za-z_][A-Za-z0-9_]*)+$' || "
+    + r"{ CURRENT_APP=$(dumpsys activity activities 2>/dev/null | "
+    + r"sed -n 's/.*mResumedActivity:.* u[0-9][0-9]* \([^/ ]*\)\/.*/\1/p' | head -1); }"
+)
+
+
+#: Sony Android 10: inspect only current media players owned by the foreground
+#: app. Historical events and system/UI sounds are not playback evidence.
+#: Incomplete/failed dumps must stay unknown rather than inventing an idle state.
+CMD_AUDIO_STATE_SONY_ANDROID10 = (
+    "{ "
+    + CMD_DEFINE_CURRENT_APP_VARIABLE_SONY_ANDROID10
+    + "; }; "
+    + 'case "$CURRENT_APP" in '
+    + "''|com.google.android.tvlauncher|com.google.android.apps.tv.launcherx|"
+    + "com.android.tv.settings|com.android.settings) printf '0' ;; "
+    + '*) if AUDIO_PACKAGES=$(cmd package list packages -U "$CURRENT_APP" 2>/dev/null); then '
+    + r"""AUDIO_UID=$(printf '%s\n' "$AUDIO_PACKAGES" | grep -F "package:$CURRENT_APP uid:" | """
+    + r"""sed -n 's/^package:[^ ]* uid:\([0-9][0-9]*\)[[:space:]]*$/\1/p'); """
+    + "case \"$AUDIO_UID\" in ''|*[!0-9]*) ;; *) "
+    + "if AUDIO_DUMP=$(dumpsys audio 2>/dev/null); then "
+    + r"""AUDIO_PLAYERS=$(printf '%s\n' "$AUDIO_DUMP" | """
+    + "sed -n '/^PlaybackActivityMonitor /,/^[[:space:]]*ducked players /p'); "
+    + """case "$AUDIO_PLAYERS" in *'players:'*'ducked players piids:'*) """
+    + r"""AUDIO_STATES=$(printf '%s\n' "$AUDIO_PLAYERS" | """
+    + r"""sed -n "s/^[[:space:]]*ID:.*u\/pid:$AUDIO_UID\/[0-9][0-9]* -- state:\([^ ]*\) -- attr:AudioAttributes: usage=USAGE_MEDIA .*/|\1|/p"); """
+    + """case "$AUDIO_STATES" in *'|started|'*) printf '2' ;; *'|paused|'*) printf '1' ;; *) printf '0' ;; esac """
+    + ";; esac; fi ;; esac; fi ;; esac"
+)
+
 #: Assign focused application identifier to ``CURRENT_APP`` variable for an Android 11 device
 CMD_DEFINE_CURRENT_APP_VARIABLE11 = (
     "CURRENT_APP=$(dumpsys window windows | grep -E 'mInputMethod(Input)?Target') && " + CMD_PARSE_CURRENT_APP11
@@ -111,6 +149,9 @@ CMD_DEFINE_CURRENT_APP_VARIABLE13 = (
 
 #: Output identifier for current/focused application
 CMD_CURRENT_APP = CMD_DEFINE_CURRENT_APP_VARIABLE + " && echo $CURRENT_APP"
+
+#: Output the current application on a Sony Android 10 TV.
+CMD_CURRENT_APP_SONY_ANDROID10 = CMD_DEFINE_CURRENT_APP_VARIABLE_SONY_ANDROID10 + ' && echo "$CURRENT_APP"'
 
 #: Output identifier for current/focused application for an Android 11 device
 CMD_CURRENT_APP11 = CMD_DEFINE_CURRENT_APP_VARIABLE11 + " && echo $CURRENT_APP"
@@ -173,6 +214,13 @@ CMD_LAUNCH_APP = (
     CMD_DEFINE_CURRENT_APP_VARIABLE.replace("{", "{{").replace("}", "}}") + " && " + CMD_LAUNCH_APP_CONDITION
 )
 
+#: Use the same Sony fallback when deciding whether an application needs launch.
+CMD_LAUNCH_APP_SONY_ANDROID10 = (
+    CMD_DEFINE_CURRENT_APP_VARIABLE_SONY_ANDROID10.replace("{", "{{").replace("}", "}}")
+    + " && "
+    + CMD_LAUNCH_APP_CONDITION.replace("$CURRENT_APP", '"$CURRENT_APP"')
+)
+
 #: Launch an app if it is not already the current app on an Android 11 device
 CMD_LAUNCH_APP11 = (
     CMD_DEFINE_CURRENT_APP_VARIABLE11.replace("{", "{{").replace("}", "}}") + " && " + CMD_LAUNCH_APP_CONDITION
@@ -203,6 +251,22 @@ CMD_MEDIA_SESSION_STATE = "dumpsys media_session | grep -A 100 'Sessions Stack' 
 
 #: Determine the current app and get the state from ``dumpsys media_session``
 CMD_CURRENT_APP_MEDIA_SESSION_STATE = CMD_CURRENT_APP + " && " + CMD_MEDIA_SESSION_STATE
+
+#: Match complete package fields within the Sony Android 10 session stack.
+#: An absent state must not leak into the next app, a prefix match, or history.
+CMD_CURRENT_APP_MEDIA_SESSION_STATE_SONY_ANDROID10 = (
+    CMD_CURRENT_APP_SONY_ANDROID10
+    + ' && if [ -n "$CURRENT_APP" ] && SESSION_DUMP=$(dumpsys media_session 2>/dev/null); then '
+    + r"""printf '%s\n' "$SESSION_DUMP" | """
+    + "sed -n '/Sessions Stack/,/Session2Tokens/{ "
+    + "s/^[[:space:]]*package=/package=/p; "
+    + "s/^[[:space:]]*state=PlaybackState/state=PlaybackState/p; }' | "
+    + "{ SESSION_APP=; SESSION_FOUND=; while IFS= read -r SESSION_LINE; do "
+    + 'case "$SESSION_LINE" in package=*) SESSION_APP=${SESSION_LINE#package=} ;; '
+    + "'state=PlaybackState {'*) "
+    + 'if [ "$SESSION_APP" = "$CURRENT_APP" ] && [ -z "$SESSION_FOUND" ]; then '
+    + r"""printf '%s\n' "$SESSION_LINE"; SESSION_FOUND=1; fi ;; esac; done; }; fi"""
+)
 
 #: Determine the current app and get the state from ``dumpsys media_session`` for an Android 11 device
 CMD_CURRENT_APP_MEDIA_SESSION_STATE11 = CMD_CURRENT_APP11 + " && " + CMD_MEDIA_SESSION_STATE

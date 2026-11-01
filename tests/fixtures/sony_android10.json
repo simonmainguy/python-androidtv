@@ -1,0 +1,31 @@
+{
+  "provenance": {
+    "model": "Sony XBR-65A8H / BRAVIA 4K UR3",
+    "android": "10",
+    "build": "662301",
+    "captured_date": "2026-11-01",
+    "description": "Reduced exact snippets from captured ADB replies. Other cases in the tests are explicitly synthetic. No IP addresses, credentials or serial numbers are included.",
+    "upstream_pr": 357,
+    "pr_head": "c63c7e118ff33d5f25cd3a2ae7b54bdd456416b8"
+  },
+  "home": {
+    "window": "  Window #1 Window{eab4f6a u0 DockedStackDivider}:\n",
+    "activity": "    mResumedActivity: ActivityRecord{447f27b u0 com.google.android.tvlauncher/.MainActivity t8586}\n",
+    "expected": "com.google.android.tvlauncher"
+  },
+  "tivimate": {
+    "window": "  Window #1 Window{eab4f6a u0 DockedStackDivider}:\n",
+    "activity": "    mResumedActivity: ActivityRecord{477e681 u0 ar.tvplayer.tv/.ui.MainActivity t8615}\n",
+    "expected": "ar.tvplayer.tv"
+  },
+  "settings": {
+    "window": "  Window #1 Window{eab4f6a u0 DockedStackDivider}:\n",
+    "activity": "    mResumedActivity: ActivityRecord{7c7272a u0 com.android.tv.settings/.MainSettings t8596}\n",
+    "expected": "com.android.tv.settings"
+  },
+  "standby": {
+    "window": "  Window #1 Window{eab4f6a u0 DockedStackDivider}:\n",
+    "activity": "",
+    "expected": null
+  }
+}

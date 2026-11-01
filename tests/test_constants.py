@@ -74,6 +74,12 @@ class TestConstants(unittest.TestCase):
             r"CURRENT_AUDIO_STATE=$(dumpsys audio | sed -r -n '/[0-9]{2}-[0-9]{2}.*player piid:.*(state|event):(started|paused|stopped).*$/h; ${x;p;}') && echo $CURRENT_AUDIO_STATE | grep -q paused && echo -e '1\c' || { echo $CURRENT_AUDIO_STATE | grep -q started && echo '2\c' || echo '0\c' ; }",
         )
 
+        # CMD_AUDIO_STATE_SONY_ANDROID10
+        self.assertCommand(
+            constants.CMD_AUDIO_STATE_SONY_ANDROID10,
+            "{ { CURRENT_APP=$(dumpsys window windows | grep -E 'mCurrentFocus|mFocusedApp') && CURRENT_APP=${CURRENT_APP#*ActivityRecord{* * } && CURRENT_APP=${CURRENT_APP#*{* * } && CURRENT_APP=${CURRENT_APP%%/*} && CURRENT_APP=${CURRENT_APP%\\}*}; } && [ \"$CURRENT_APP\" != null ] && printf '%s\\n' \"$CURRENT_APP\" | grep -Eq '^android$|^[A-Za-z_][A-Za-z0-9_]*(\\.[A-Za-z_][A-Za-z0-9_]*)+$' || { CURRENT_APP=$(dumpsys activity activities 2>/dev/null | sed -n 's/.*mResumedActivity:.* u[0-9][0-9]* \\([^/ ]*\\)\\/.*/\\1/p' | head -1); }; }; case \"$CURRENT_APP\" in ''|com.google.android.tvlauncher|com.google.android.apps.tv.launcherx|com.android.tv.settings|com.android.settings) printf '0' ;; *) if AUDIO_PACKAGES=$(cmd package list packages -U \"$CURRENT_APP\" 2>/dev/null); then AUDIO_UID=$(printf '%s\\n' \"$AUDIO_PACKAGES\" | grep -F \"package:$CURRENT_APP uid:\" | sed -n 's/^package:[^ ]* uid:\\([0-9][0-9]*\\)[[:space:]]*$/\\1/p'); case \"$AUDIO_UID\" in ''|*[!0-9]*) ;; *) if AUDIO_DUMP=$(dumpsys audio 2>/dev/null); then AUDIO_PLAYERS=$(printf '%s\\n' \"$AUDIO_DUMP\" | sed -n '/^PlaybackActivityMonitor /,/^[[:space:]]*ducked players /p'); case \"$AUDIO_PLAYERS\" in *'players:'*'ducked players piids:'*) AUDIO_STATES=$(printf '%s\\n' \"$AUDIO_PLAYERS\" | sed -n \"s/^[[:space:]]*ID:.*u\\/pid:$AUDIO_UID\\/[0-9][0-9]* -- state:\\([^ ]*\\) -- attr:AudioAttributes: usage=USAGE_MEDIA .*/|\\1|/p\"); case \"$AUDIO_STATES\" in *'|started|'*) printf '2' ;; *'|paused|'*) printf '1' ;; *) printf '0' ;; esac ;; esac; fi ;; esac; fi ;; esac",
+        )
+
         # CMD_AWAKE
         self.assertCommand(constants.CMD_AWAKE, r"dumpsys power | grep mWakefulness | grep -q Awake")
 
@@ -147,6 +153,18 @@ class TestConstants(unittest.TestCase):
             r"CURRENT_APP=$(dumpsys activity a . | grep mResumedActivity) && CURRENT_APP=${CURRENT_APP#*ActivityRecord{* * } && CURRENT_APP=${CURRENT_APP#*{* * } && CURRENT_APP=${CURRENT_APP%%/*} && CURRENT_APP=${CURRENT_APP%\}*} && echo $CURRENT_APP && dumpsys media_session | grep -A 100 'Sessions Stack' | grep -A 100 $CURRENT_APP | grep -m 1 'state=PlaybackState {'",
         )
 
+        # CMD_CURRENT_APP_MEDIA_SESSION_STATE_SONY_ANDROID10
+        self.assertCommand(
+            constants.CMD_CURRENT_APP_MEDIA_SESSION_STATE_SONY_ANDROID10,
+            '{ CURRENT_APP=$(dumpsys window windows | grep -E \'mCurrentFocus|mFocusedApp\') && CURRENT_APP=${CURRENT_APP#*ActivityRecord{* * } && CURRENT_APP=${CURRENT_APP#*{* * } && CURRENT_APP=${CURRENT_APP%%/*} && CURRENT_APP=${CURRENT_APP%\\}*}; } && [ "$CURRENT_APP" != null ] && printf \'%s\\n\' "$CURRENT_APP" | grep -Eq \'^android$|^[A-Za-z_][A-Za-z0-9_]*(\\.[A-Za-z_][A-Za-z0-9_]*)+$\' || { CURRENT_APP=$(dumpsys activity activities 2>/dev/null | sed -n \'s/.*mResumedActivity:.* u[0-9][0-9]* \\([^/ ]*\\)\\/.*/\\1/p\' | head -1); } && echo "$CURRENT_APP" && if [ -n "$CURRENT_APP" ] && SESSION_DUMP=$(dumpsys media_session 2>/dev/null); then printf \'%s\\n\' "$SESSION_DUMP" | sed -n \'/Sessions Stack/,/Session2Tokens/{ s/^[[:space:]]*package=/package=/p; s/^[[:space:]]*state=PlaybackState/state=PlaybackState/p; }\' | { SESSION_APP=; SESSION_FOUND=; while IFS= read -r SESSION_LINE; do case "$SESSION_LINE" in package=*) SESSION_APP=${SESSION_LINE#package=} ;; \'state=PlaybackState {\'*) if [ "$SESSION_APP" = "$CURRENT_APP" ] && [ -z "$SESSION_FOUND" ]; then printf \'%s\\n\' "$SESSION_LINE"; SESSION_FOUND=1; fi ;; esac; done; }; fi',
+        )
+
+        # CMD_CURRENT_APP_SONY_ANDROID10
+        self.assertCommand(
+            constants.CMD_CURRENT_APP_SONY_ANDROID10,
+            "{ CURRENT_APP=$(dumpsys window windows | grep -E 'mCurrentFocus|mFocusedApp') && CURRENT_APP=${CURRENT_APP#*ActivityRecord{* * } && CURRENT_APP=${CURRENT_APP#*{* * } && CURRENT_APP=${CURRENT_APP%%/*} && CURRENT_APP=${CURRENT_APP%\\}*}; } && [ \"$CURRENT_APP\" != null ] && printf '%s\\n' \"$CURRENT_APP\" | grep -Eq '^android$|^[A-Za-z_][A-Za-z0-9_]*(\\.[A-Za-z_][A-Za-z0-9_]*)+$' || { CURRENT_APP=$(dumpsys activity activities 2>/dev/null | sed -n 's/.*mResumedActivity:.* u[0-9][0-9]* \\([^/ ]*\\)\\/.*/\\1/p' | head -1); } && echo \"$CURRENT_APP\"",
+        )
+
         # CMD_DEVICE_PROPERTIES
         self.assertCommand(
             constants.CMD_DEVICE_PROPERTIES,
@@ -202,6 +220,12 @@ class TestConstants(unittest.TestCase):
         self.assertCommand(
             constants.CMD_LAUNCH_APP_GOOGLE_TV,
             r"CURRENT_APP=$(dumpsys activity a . | grep mResumedActivity) && CURRENT_APP=${{CURRENT_APP#*ActivityRecord{{* * }} && CURRENT_APP=${{CURRENT_APP#*{{* * }} && CURRENT_APP=${{CURRENT_APP%%/*}} && CURRENT_APP=${{CURRENT_APP%\}}*}} && if [ $CURRENT_APP != '{0}' ]; then monkey -p {0} -c android.intent.category.LEANBACK_LAUNCHER --pct-syskeys 0 1; fi",
+        )
+
+        # CMD_LAUNCH_APP_SONY_ANDROID10
+        self.assertCommand(
+            constants.CMD_LAUNCH_APP_SONY_ANDROID10,
+            "{{ CURRENT_APP=$(dumpsys window windows | grep -E 'mCurrentFocus|mFocusedApp') && CURRENT_APP=${{CURRENT_APP#*ActivityRecord{{* * }} && CURRENT_APP=${{CURRENT_APP#*{{* * }} && CURRENT_APP=${{CURRENT_APP%%/*}} && CURRENT_APP=${{CURRENT_APP%\\}}*}}; }} && [ \"$CURRENT_APP\" != null ] && printf '%s\\n' \"$CURRENT_APP\" | grep -Eq '^android$|^[A-Za-z_][A-Za-z0-9_]*(\\.[A-Za-z_][A-Za-z0-9_]*)+$' || {{ CURRENT_APP=$(dumpsys activity activities 2>/dev/null | sed -n 's/.*mResumedActivity:.* u[0-9][0-9]* \\([^/ ]*\\)\\/.*/\\1/p' | head -1); }} && if [ \"$CURRENT_APP\" != '{0}' ]; then monkey -p {0} -c android.intent.category.LEANBACK_LAUNCHER --pct-syskeys 0 1; fi",
         )
 
         # CMD_MAC_ETH0

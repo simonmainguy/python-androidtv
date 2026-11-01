@@ -135,6 +135,15 @@ class BaseAndroidTV(BaseTV):  # pylint: disable=too-few-public-methods
             if current_app in [constants.APP_ATV_LAUNCHER, None]:
                 state = constants.STATE_IDLE
 
+            # Sony current-player evidence includes a reliable idle result.
+            # Do not turn that into playing/paused by guessing from wake locks.
+            elif (
+                self._is_sony_android10()
+                and media_session_state in (None, 0)
+                and audio_state in (constants.STATE_IDLE, constants.STATE_PLAYING, constants.STATE_PAUSED)
+            ):
+                state = audio_state
+
             # BELL Fibe
             elif current_app == constants.APP_BELL_FIBE:
                 state = audio_state

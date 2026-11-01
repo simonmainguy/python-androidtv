@@ -122,6 +122,14 @@ class BaseTV(object):  # pylint: disable=too-few-public-methods
             elif custom_command in self._custom_commands:
                 del self._custom_commands[custom_command]
 
+    def _is_sony_android10(self):
+        """Identify Android 10 Sony TVs that may omit window-focus fields."""
+        return (
+            self.DEVICE_ENUM == constants.DeviceEnum.ANDROIDTV
+            and self.device_properties.get("manufacturer") == "Sony"
+            and self.device_properties.get("sw_version") == "10"
+        )
+
     def _cmd_audio_state(self):
         """Get the command used to retrieve the current audio state for this device.
 
@@ -133,6 +141,9 @@ class BaseTV(object):  # pylint: disable=too-few-public-methods
         """
         if constants.CUSTOM_AUDIO_STATE in self._custom_commands:
             return self._custom_commands[constants.CUSTOM_AUDIO_STATE]
+
+        if self._is_sony_android10():
+            return constants.CMD_AUDIO_STATE_SONY_ANDROID10
 
         # Is this an Android 11-14 device?
         if self.DEVICE_ENUM == constants.DeviceEnum.ANDROIDTV and self.device_properties.get("sw_version", "") in [
@@ -156,6 +167,9 @@ class BaseTV(object):  # pylint: disable=too-few-public-methods
         """
         if constants.CUSTOM_CURRENT_APP in self._custom_commands:
             return self._custom_commands[constants.CUSTOM_CURRENT_APP]
+
+        if self._is_sony_android10():
+            return constants.CMD_CURRENT_APP_SONY_ANDROID10
 
         # Is this a Google Chromecast Android TV?
         if (
@@ -201,6 +215,9 @@ class BaseTV(object):  # pylint: disable=too-few-public-methods
         """
         if constants.CUSTOM_CURRENT_APP_MEDIA_SESSION_STATE in self._custom_commands:
             return self._custom_commands[constants.CUSTOM_CURRENT_APP_MEDIA_SESSION_STATE]
+
+        if self._is_sony_android10():
+            return constants.CMD_CURRENT_APP_MEDIA_SESSION_STATE_SONY_ANDROID10
 
         # Is this an Askey STI6130 Device?
         if (
@@ -299,6 +316,9 @@ class BaseTV(object):  # pylint: disable=too-few-public-methods
         """
         if constants.CUSTOM_LAUNCH_APP in self._custom_commands:
             return self._custom_commands[constants.CUSTOM_LAUNCH_APP].format(app)
+
+        if self._is_sony_android10():
+            return constants.CMD_LAUNCH_APP_SONY_ANDROID10.format(app)
 
         # Is this a Google Chromecast Android TV?
         if (
